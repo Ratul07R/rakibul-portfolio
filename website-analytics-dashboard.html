@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebPulse — Website Analytics Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#f8fafc;--surface:#fff;--card:#fff;--border:#e2e8f0;--accent:#0ea5e9;--accent2:#8b5cf6;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--text:#0f172a;--muted:#64748b;--sub:#94a3b8}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
+  .layout{display:flex;min-height:100vh}
+  .sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);padding:0;flex-shrink:0}
+  .sidebar-top{padding:20px 20px 0}
+  .logo{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--accent);margin-bottom:28px;display:flex;align-items:center;gap:8px}
+  .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+  .nav-section{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--sub);padding:0 12px;margin:20px 0 6px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;color:var(--muted);cursor:pointer;margin:1px 8px;transition:.15s}
+  .nav-item:hover{background:#f1f5f9;color:var(--text)}
+  .nav-item.active{background:#eff6ff;color:var(--accent);font-weight:500}
+  .nav-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+  .sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);margin-top:auto}
+  .user-row{display:flex;align-items:center;gap:10px}
+  .user-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+  .user-name{font-size:13px;font-weight:500}
+  .user-role{font-size:11px;color:var(--muted)}
+  .main{flex:1;overflow:auto}
+  .topbar{padding:18px 28px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--surface);position:sticky;top:0;z-index:10}
+  .page-title{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:600}
+  .topbar-right{display:flex;align-items:center;gap:10px}
+  .select-box{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:7px 12px;font-size:12px;color:var(--text);cursor:pointer}
+  .btn-sm{background:var(--accent);color:#fff;border:none;padding:7px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer}
+  .content{padding:24px 28px}
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+  .mc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden}
+  .mc::after{content:'';position:absolute;top:0;right:0;width:4px;height:100%;border-radius:0 12px 12px 0}
+  .mc.blue::after{background:var(--accent)}
+  .mc.purple::after{background:var(--accent2)}
+  .mc.green::after{background:var(--green)}
+  .mc.amber::after{background:var(--amber)}
+  .mc-label{font-size:11px;color:var(--muted);margin-bottom:10px;font-weight:500}
+  .mc-val{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;margin-bottom:4px}
+  .mc-change{font-size:11px;display:flex;align-items:center;gap:3px}
+  .up{color:var(--green)} .down{color:var(--red)}
+  .grid-2{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:22px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+  .card-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+  .card-title{font-size:14px;font-weight:600;color:var(--text)}
+  .tag{font-size:11px;background:#eff6ff;color:var(--accent);padding:3px 8px;border-radius:4px;font-weight:500}
+  .line-chart{height:130px;position:relative;display:flex;align-items:flex-end;gap:0}
+  .line-chart svg{width:100%;height:100%}
+  .pages-list{display:flex;flex-direction:column;gap:0}
+  .page-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+  .page-row:last-child{border-bottom:none}
+  .page-num{font-size:12px;color:var(--sub);width:18px}
+  .page-path{font-size:13px;font-weight:500;flex:1}
+  .page-views{font-size:12px;color:var(--muted);margin-right:8px}
+  .page-bar-wrap{width:80px;height:4px;background:#f1f5f9;border-radius:2px}
+  .page-bar-fill{height:100%;border-radius:2px;background:var(--accent)}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:22px}
+  .device-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+  .device-item:last-child{border-bottom:none}
+  .dev-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;background:#f8fafc}
+  .dev-name{font-size:13px;font-weight:500;flex:1}
+  .dev-pct{font-size:13px;font-weight:600;color:var(--text)}
+  .progress-row{margin-top:4px;height:4px;background:#f1f5f9;border-radius:2px}
+  .progress-fill{height:100%;border-radius:2px}
+  .country-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+  .country-row:last-child{border-bottom:none}
+  .country-flag{font-size:18px;width:24px}
+  .country-name{flex:1;font-weight:500}
+  .country-val{color:var(--muted)}
+  .country-pct{font-size:12px;font-weight:500;color:var(--accent)}
+  .realtime-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .rt-val{font-family:'Space Grotesk',sans-serif;font-size:48px;font-weight:700;color:var(--text);margin:20px 0 4px}
+  .rt-label{font-size:13px;color:var(--muted)}
+  .rt-pages{margin-top:20px}
+  .rt-page{display:flex;justify-content:space-between;font-size:12px;padding:7px 0;border-bottom:1px solid var(--border);color:var(--muted)}
+  .rt-page:last-child{border-bottom:none}
+  .rt-page span:first-child{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-top">
+      <div class="logo"><div class="logo-dot"></div>WebPulse</div>
+      <div class="nav-section">Main</div>
+      <div class="nav-item active"><div class="nav-dot"></div>Overview</div>
+      <div class="nav-item"><div class="nav-dot"></div>Real-time</div>
+      <div class="nav-item"><div class="nav-dot"></div>Pages</div>
+      <div class="nav-item"><div class="nav-dot"></div>Audience</div>
+      <div class="nav-section">Acquisition</div>
+      <div class="nav-item"><div class="nav-dot"></div>Traffic Sources</div>
+      <div class="nav-item"><div class="nav-dot"></div>Campaigns</div>
+      <div class="nav-item"><div class="nav-dot"></div>Search Console</div>
+      <div class="nav-section">Settings</div>
+      <div class="nav-item"><div class="nav-dot"></div>Properties</div>
+      <div class="nav-item"><div class="nav-dot"></div>Team Access</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title">Website Overview</div>
+      <div class="topbar-right">
+        <select class="select-box"><option>Last 30 days</option><option>Last 7 days</option><option>Last 90 days</option></select>
+        <button class="btn-sm">Export</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="metrics">
+        <div class="mc blue">
+          <div class="mc-label">Total Sessions</div>
+          <div class="mc-val">84,291</div>
+          <div class="mc-change up">▲ 12.4% vs prev period</div>
+        </div>
+        <div class="mc purple">
+          <div class="mc-label">Unique Visitors</div>
+          <div class="mc-val">62,847</div>
+          <div class="mc-change up">▲ 8.7%</div>
+        </div>
+        <div class="mc green">
+          <div class="mc-label">Avg. Session Duration</div>
+          <div class="mc-val">3m 42s</div>
+          <div class="mc-change up">▲ 0:22s</div>
+        </div>
+        <div class="mc amber">
+          <div class="mc-label">Bounce Rate</div>
+          <div class="mc-val">38.2%</div>
+          <div class="mc-change down">▼ 4.1% (improved)</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Sessions over time</div><div class="tag">Daily</div></div>
+          <div class="line-chart">
+            <svg viewBox="0 0 500 120" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.2"/>
+                  <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="M0,90 C30,80 60,60 90,55 C120,50 150,70 180,65 C210,60 240,40 270,35 C300,30 330,45 360,38 C390,32 420,20 450,15 C470,12 490,18 500,15" fill="none" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M0,90 C30,80 60,60 90,55 C120,50 150,70 180,65 C210,60 240,40 270,35 C300,30 330,45 360,38 C390,32 420,20 450,15 C470,12 490,18 500,15 L500,120 L0,120 Z" fill="url(#grad)"/>
+              <line x1="0" y1="110" x2="500" y2="110" stroke="#e2e8f0" stroke-width="1"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Live visitors</div><div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#10b981"><div class="realtime-dot"></div>Real-time</div></div>
+          <div class="rt-val">247</div>
+          <div class="rt-label">people on site right now</div>
+          <div class="rt-pages">
+            <div class="rt-page"><span>/home</span><span>82</span></div>
+            <div class="rt-page"><span>/pricing</span><span>41</span></div>
+            <div class="rt-page"><span>/features</span><span>38</span></div>
+            <div class="rt-page"><span>/blog</span><span>29</span></div>
+            <div class="rt-page"><span>/signup</span><span>57</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Top pages</div></div>
+          <div class="pages-list">
+            <div class="page-row"><div class="page-num">1</div><div class="page-path">/home</div><div class="page-views">24,100</div><div class="page-bar-wrap"><div class="page-bar-fill" style="width:100%"></div></div></div>
+            <div class="page-row"><div class="page-num">2</div><div class="page-path">/pricing</div><div class="page-views">12,840</div><div class="page-bar-wrap"><div class="page-bar-fill" style="width:53%"></div></div></div>
+            <div class="page-row"><div class="page-num">3</div><div class="page-path">/features</div><div class="page-views">9,200</div><div class="page-bar-wrap"><div class="page-bar-fill" style="width:38%"></div></div></div>
+            <div class="page-row"><div class="page-num">4</div><div class="page-path">/blog</div><div class="page-views">7,420</div><div class="page-bar-wrap"><div class="page-bar-fill" style="width:31%"></div></div></div>
+            <div class="page-row"><div class="page-num">5</div><div class="page-path">/signup</div><div class="page-views">5,910</div><div class="page-bar-wrap"><div class="page-bar-fill" style="width:24%"></div></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Devices</div></div>
+          <div class="device-item"><div class="dev-icon">💻</div><div><div class="dev-name">Desktop</div><div class="progress-row"><div class="progress-fill" style="width:58%;background:var(--accent)"></div></div></div><div class="dev-pct">58%</div></div>
+          <div class="device-item"><div class="dev-icon">📱</div><div><div class="dev-name">Mobile</div><div class="progress-row"><div class="progress-fill" style="width:34%;background:var(--accent2)"></div></div></div><div class="dev-pct">34%</div></div>
+          <div class="device-item"><div class="dev-icon">📟</div><div><div class="dev-name">Tablet</div><div class="progress-row"><div class="progress-fill" style="width:8%;background:var(--amber)"></div></div></div><div class="dev-pct">8%</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><div class="card-title">Top countries</div></div>
+          <div class="country-row"><div class="country-flag">🇺🇸</div><div class="country-name">United States</div><div class="country-val">28,410</div><div class="country-pct">34%</div></div>
+          <div class="country-row"><div class="country-flag">🇬🇧</div><div class="country-name">United Kingdom</div><div class="country-val">12,200</div><div class="country-pct">14%</div></div>
+          <div class="country-row"><div class="country-flag">🇩🇪</div><div class="country-name">Germany</div><div class="country-val">8,920</div><div class="country-pct">11%</div></div>
+          <div class="country-row"><div class="country-flag">🇮🇳</div><div class="country-name">India</div><div class="country-val">7,340</div><div class="country-pct">9%</div></div>
+          <div class="country-row"><div class="country-flag">🇧🇩</div><div class="country-name">Bangladesh</div><div class="country-val">4,100</div><div class="country-pct">5%</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

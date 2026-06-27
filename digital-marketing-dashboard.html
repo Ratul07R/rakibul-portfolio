@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Marketing Dashboard — Rakibul Islam</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#0b0f1a;
+    --surface:#111827;
+    --card:#161d2e;
+    --border:#1f2d45;
+    --accent:#3b82f6;
+    --accent2:#8b5cf6;
+    --green:#10b981;
+    --red:#ef4444;
+    --amber:#f59e0b;
+    --text:#f1f5f9;
+    --muted:#64748b;
+    --sub:#94a3b8;
+  }
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
+  .sidebar{position:fixed;left:0;top:0;width:220px;height:100vh;background:var(--surface);border-right:1px solid var(--border);padding:24px 0;z-index:10}
+  .logo{padding:0 20px 28px;font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--accent);border-bottom:1px solid var(--border);margin-bottom:16px}
+  .logo span{color:var(--text)}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;color:var(--sub);font-size:13px;cursor:pointer;transition:all .2s}
+  .nav-item:hover,.nav-item.active{color:var(--text);background:var(--card)}
+  .nav-item.active{border-right:2px solid var(--accent)}
+  .nav-icon{width:16px;height:16px;opacity:.7}
+  .main{margin-left:220px;padding:28px 32px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+  .page-title{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700}
+  .page-sub{color:var(--muted);font-size:13px;margin-top:2px}
+  .topbar-right{display:flex;align-items:center;gap:12px}
+  .date-badge{background:var(--card);border:1px solid var(--border);padding:7px 14px;border-radius:8px;font-size:12px;color:var(--sub)}
+  .avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600}
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+  .metric-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+  .metric-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+  .metric-value{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;margin-bottom:6px}
+  .metric-change{font-size:12px;display:flex;align-items:center;gap:4px}
+  .up{color:var(--green)} .down{color:var(--red)}
+  .metric-bar{height:3px;background:var(--border);border-radius:2px;margin-top:14px}
+  .metric-fill{height:100%;border-radius:2px;transition:width 1s ease}
+  .grid2{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:24px}
+  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+  .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+  .card-title{font-size:14px;font-weight:600}
+  .card-badge{font-size:11px;background:rgba(59,130,246,.15);color:var(--accent);padding:3px 8px;border-radius:4px}
+  .chart-bars{display:flex;align-items:flex-end;gap:8px;height:140px}
+  .bar-group{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+  .bar-wrap{display:flex;gap:3px;align-items:flex-end;height:120px}
+  .bar{border-radius:4px 4px 0 0;min-width:12px;transition:height .8s ease}
+  .bar.b1{background:var(--accent);opacity:.9}
+  .bar.b2{background:var(--accent2);opacity:.7}
+  .bar-label{font-size:10px;color:var(--muted)}
+  .donut-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;height:160px}
+  svg.donut{transform:rotate(-90deg)}
+  .donut-legend{width:100%}
+  .legend-item{display:flex;align-items:center;justify-content:space-between;font-size:12px;margin-bottom:8px}
+  .legend-dot{width:8px;height:8px;border-radius:50%;margin-right:6px}
+  .legend-left{display:flex;align-items:center}
+  .legend-pct{color:var(--sub)}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px}
+  .channel-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+  .channel-item:last-child{border-bottom:none}
+  .channel-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+  .channel-info{flex:1}
+  .channel-name{font-size:13px;font-weight:500;margin-bottom:2px}
+  .channel-stat{font-size:11px;color:var(--muted)}
+  .channel-trend{font-size:12px}
+  .progress-wrap{margin-top:4px}
+  .progress-bg{height:4px;background:var(--border);border-radius:2px}
+  .progress-fill{height:100%;border-radius:2px}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+  td{font-size:13px;padding:12px 14px;border-bottom:1px solid var(--border);color:var(--sub)}
+  td:first-child{color:var(--text);font-weight:500}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  .status{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:4px}
+  .status.live{background:rgba(16,185,129,.15);color:var(--green)}
+  .status.paused{background:rgba(245,158,11,.15);color:var(--amber)}
+  .status.ended{background:rgba(239,68,68,.12);color:var(--red)}
+  .sparkline{display:flex;align-items:flex-end;gap:2px;height:24px}
+  .spark-bar{width:4px;border-radius:1px;background:var(--accent);opacity:.6}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">Marka<span>AI</span></div>
+  <div class="nav-item active">📊 Dashboard</div>
+  <div class="nav-item">📣 Campaigns</div>
+  <div class="nav-item">👥 Audience</div>
+  <div class="nav-item">📧 Email</div>
+  <div class="nav-item">🔗 Social Media</div>
+  <div class="nav-item">🔍 SEO</div>
+  <div class="nav-item">💰 Ads</div>
+  <div class="nav-item">📈 Analytics</div>
+  <div class="nav-item">⚙️ Settings</div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Marketing Overview</div>
+      <div class="page-sub">Track all your campaigns and performance in one place</div>
+    </div>
+    <div class="topbar-right">
+      <div class="date-badge">Jun 1 – Jun 28, 2025</div>
+      <div class="avatar">RI</div>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="metric-label">Total Impressions</div>
+      <div class="metric-value">2.4M</div>
+      <div class="metric-change up">▲ 18.4% vs last month</div>
+      <div class="metric-bar"><div class="metric-fill" style="width:72%;background:var(--accent)"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Click-Through Rate</div>
+      <div class="metric-value">4.7%</div>
+      <div class="metric-change up">▲ 2.1% vs last month</div>
+      <div class="metric-bar"><div class="metric-fill" style="width:47%;background:var(--green)"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Conversions</div>
+      <div class="metric-value">1,284</div>
+      <div class="metric-change down">▼ 3.2% vs last month</div>
+      <div class="metric-bar"><div class="metric-fill" style="width:55%;background:var(--amber)"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Revenue Generated</div>
+      <div class="metric-value">$48.2K</div>
+      <div class="metric-change up">▲ 22.7% vs last month</div>
+      <div class="metric-bar"><div class="metric-fill" style="width:82%;background:var(--accent2)"></div></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-title">Weekly Performance</div>
+        <div style="display:flex;gap:12px;font-size:11px">
+          <span style="color:var(--accent)">■ Clicks</span>
+          <span style="color:var(--accent2)">■ Conversions</span>
+        </div>
+      </div>
+      <div class="chart-bars">
+        <div class="bar-group"><div class="bar-wrap"><div class="bar b1" style="height:60px"></div><div class="bar b2" style="height:30px"></div></div><div class="bar-label">W1</div></div>
+        <div class="bar-group"><div class="bar-wrap"><div class="bar b1" style="height:80px"></div><div class="bar b2" style="height:45px"></div></div><div class="bar-label">W2</div></div>
+        <div class="bar-group"><div class="bar-wrap"><div class="bar b1" style="height:55px"></div><div class="bar b2" style="height:28px"></div></div><div class="bar-label">W3</div></div>
+        <div class="bar-group"><div class="bar-wrap"><div class="bar b1" style="height:100px"></div><div class="bar b2" style="height:60px"></div></div><div class="bar-label">W4</div></div>
+        <div class="bar-group"><div class="bar-wrap"><div class="bar b1" style="height:75px"></div><div class="bar b2" style="height:40px"></div></div><div class="bar-label">W5</div></div>
+        <div class="bar-group"><div class="bar-wrap"><div class="bar b1" style="height:90px"></div><div class="bar b2" style="height:55px"></div></div><div class="bar-label">W6</div></div>
+        <div class="bar-group"><div class="bar-wrap"><div class="bar b1" style="height:110px"></div><div class="bar b2" style="height:70px"></div></div><div class="bar-label">W7</div></div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-header"><div class="card-title">Traffic Sources</div></div>
+      <div class="donut-wrap">
+        <svg class="donut" width="100" height="100" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#1f2d45" stroke-width="14"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#3b82f6" stroke-width="14" stroke-dasharray="95 144" stroke-dashoffset="0"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#8b5cf6" stroke-width="14" stroke-dasharray="50 144" stroke-dashoffset="-95"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#10b981" stroke-width="14" stroke-dasharray="30 144" stroke-dashoffset="-145"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#f59e0b" stroke-width="14" stroke-dasharray="20 144" stroke-dashoffset="-175"/>
+        </svg>
+        <div class="donut-legend">
+          <div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:#3b82f6"></div>Organic Search</div><div class="legend-pct">39%</div></div>
+          <div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:#8b5cf6"></div>Social Media</div><div class="legend-pct">24%</div></div>
+          <div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:#10b981"></div>Email</div><div class="legend-pct">20%</div></div>
+          <div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:#f59e0b"></div>Paid Ads</div><div class="legend-pct">17%</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-bottom:24px">
+    <div class="card-header">
+      <div class="card-title">Active Campaigns</div>
+      <div class="card-badge">6 Running</div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Campaign</th><th>Channel</th><th>Budget</th><th>Spent</th><th>Conversions</th><th>ROAS</th><th>Status</th><th>Trend</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Summer Launch 2025</td><td>Google Ads</td><td>$5,000</td><td>$3,240</td><td>284</td><td>4.2x</td>
+          <td><span class="status live">● Live</span></td>
+          <td><div class="sparkline"><div class="spark-bar" style="height:10px"></div><div class="spark-bar" style="height:16px"></div><div class="spark-bar" style="height:12px"></div><div class="spark-bar" style="height:20px"></div><div class="spark-bar" style="height:22px"></div></div></td>
+        </tr>
+        <tr>
+          <td>Brand Awareness Q2</td><td>Facebook</td><td>$3,000</td><td>$2,100</td><td>156</td><td>3.1x</td>
+          <td><span class="status live">● Live</span></td>
+          <td><div class="sparkline"><div class="spark-bar" style="height:14px"></div><div class="spark-bar" style="height:10px"></div><div class="spark-bar" style="height:18px"></div><div class="spark-bar" style="height:14px"></div><div class="spark-bar" style="height:20px"></div></div></td>
+        </tr>
+        <tr>
+          <td>Email Re-engagement</td><td>Email</td><td>$800</td><td>$800</td><td>98</td><td>5.8x</td>
+          <td><span class="status ended">● Ended</span></td>
+          <td><div class="sparkline"><div class="spark-bar" style="height:20px;background:var(--green)"></div><div class="spark-bar" style="height:18px;background:var(--green)"></div><div class="spark-bar" style="height:22px;background:var(--green)"></div><div class="spark-bar" style="height:16px;background:var(--green)"></div><div class="spark-bar" style="height:8px;background:var(--green)"></div></div></td>
+        </tr>
+        <tr>
+          <td>Instagram Influencer</td><td>Instagram</td><td>$2,000</td><td>$950</td><td>72</td><td>2.4x</td>
+          <td><span class="status paused">● Paused</span></td>
+          <td><div class="sparkline"><div class="spark-bar" style="height:8px;background:var(--amber)"></div><div class="spark-bar" style="height:12px;background:var(--amber)"></div><div class="spark-bar" style="height:10px;background:var(--amber)"></div><div class="spark-bar" style="height:6px;background:var(--amber)"></div><div class="spark-bar" style="height:4px;background:var(--amber)"></div></div></td>
+        </tr>
+        <tr>
+          <td>SEO Content Push</td><td>Organic</td><td>$1,200</td><td>$1,200</td><td>312</td><td>7.2x</td>
+          <td><span class="status live">● Live</span></td>
+          <td><div class="sparkline"><div class="spark-bar" style="height:6px"></div><div class="spark-bar" style="height:12px"></div><div class="spark-bar" style="height:16px"></div><div class="spark-bar" style="height:20px"></div><div class="spark-bar" style="height:24px"></div></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>

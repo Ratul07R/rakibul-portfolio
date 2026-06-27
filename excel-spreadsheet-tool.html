@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SheetAI — Smart Spreadsheet Tool</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@600;700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#f0f2f5;--surface:#fff;--border:#d0d7de;--border2:#e1e4e8;--accent:#217346;--accent2:#0078d4;--text:#1f2328;--muted:#656d76;--header-bg:#f6f8fa;--sel:#c7defa}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  .titlebar{background:#217346;color:#fff;padding:6px 12px;display:flex;align-items:center;gap:12px;font-size:13px}
+  .app-logo{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;margin-right:8px}
+  .file-name{font-weight:500}
+  .saved-badge{font-size:11px;opacity:.7;margin-left:4px}
+  .ribbon{background:var(--surface);border-bottom:1px solid var(--border)}
+  .ribbon-tabs{display:flex;padding:0 8px;border-bottom:1px solid var(--border2)}
+  .rtab{padding:7px 14px;font-size:12px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+  .rtab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
+  .ribbon-content{padding:6px 10px;display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+  .rbtn{background:transparent;border:none;padding:4px 8px;border-radius:4px;font-size:12px;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap}
+  .rbtn:hover{background:#f0f2f5}
+  .rbtn.active{background:#e8f4ee;color:var(--accent)}
+  .rdiv{width:1px;height:24px;background:var(--border2);margin:0 4px}
+  .rb-icon{font-size:14px}
+  .formula-bar{display:flex;align-items:center;border-bottom:1px solid var(--border);background:var(--surface);padding:0}
+  .cell-name{width:60px;text-align:center;font-size:12px;font-weight:500;border-right:1px solid var(--border);padding:6px 8px;color:var(--muted)}
+  .fx-label{padding:0 8px;font-size:12px;color:var(--muted);border-right:1px solid var(--border2)}
+  .formula-input{flex:1;padding:6px 10px;font-size:12px;border:none;outline:none;font-family:'Inter',sans-serif}
+  .sheet-area{flex:1;display:flex;overflow:hidden}
+  .row-headers{width:40px;flex-shrink:0;overflow:hidden;border-right:1px solid var(--border)}
+  .col-header-wrap{overflow:hidden}
+  .table-wrap{flex:1;overflow:auto;position:relative}
+  table.sheet{border-collapse:collapse;min-width:max-content}
+  table.sheet th{background:var(--header-bg);font-size:11px;font-weight:500;color:var(--muted);padding:0;min-width:90px;height:24px;border:1px solid var(--border2);text-align:center;position:sticky;top:0;z-index:5;cursor:pointer;user-select:none}
+  table.sheet th.col-sel{background:#e8f4ee;color:var(--accent)}
+  table.sheet th.row-head{min-width:40px;width:40px;left:0;z-index:6;position:sticky}
+  table.sheet td{min-width:90px;height:22px;border:1px solid var(--border2);padding:0 6px;font-size:12px;color:var(--text);cursor:cell;white-space:nowrap;overflow:hidden;position:relative}
+  table.sheet td.selected{background:var(--sel);outline:2px solid var(--accent2);outline-offset:-1px;z-index:2}
+  table.sheet td.row-head{background:var(--header-bg);font-size:11px;color:var(--muted);text-align:center;font-weight:500;padding:0;cursor:default;position:sticky;left:0;z-index:3;min-width:40px;width:40px}
+  table.sheet td.formula{color:var(--accent);font-weight:500}
+  table.sheet td.num{text-align:right}
+  table.sheet td.bold{font-weight:600}
+  table.sheet td.header-cell{background:#e8f4ee;font-weight:600;font-size:11px;color:var(--accent);text-align:center}
+  table.sheet td.total-cell{background:#f0faf4;font-weight:600;border-top:2px solid var(--accent)}
+  table.sheet td.red-num{color:#c0392b;text-align:right}
+  table.sheet td.green-num{color:#217346;text-align:right}
+  .sheet-tabs{background:var(--surface);border-top:1px solid var(--border);padding:0 8px;display:flex;align-items:center;gap:0;height:32px}
+  .stab{padding:6px 16px;font-size:12px;border:1px solid var(--border);border-bottom:none;border-radius:4px 4px 0 0;cursor:pointer;background:var(--bg);color:var(--muted);margin-right:2px}
+  .stab.active{background:var(--surface);color:var(--text);font-weight:500;border-bottom-color:var(--surface)}
+  .stab-add{padding:4px 10px;font-size:16px;color:var(--muted);cursor:pointer;background:transparent;border:none}
+  .status-bar{background:#217346;color:#fff;font-size:11px;padding:3px 12px;display:flex;justify-content:space-between;opacity:.95}
+  .status-right{display:flex;gap:20px}
+</style>
+</head>
+<body>
+
+<div class="titlebar">
+  <div class="app-logo">SheetAI</div>
+  <div class="file-name">Q2_Revenue_Report_2025.xlsx</div>
+  <div class="saved-badge">● Saved</div>
+</div>
+
+<div class="ribbon">
+  <div class="ribbon-tabs">
+    <div class="rtab active">Home</div>
+    <div class="rtab">Insert</div>
+    <div class="rtab">Formulas</div>
+    <div class="rtab">Data</div>
+    <div class="rtab">View</div>
+    <div class="rtab" style="color:#8b5cf6;font-weight:500">✦ AI</div>
+  </div>
+  <div class="ribbon-content">
+    <button class="rbtn"><span class="rb-icon">✂</span>Cut</button>
+    <button class="rbtn"><span class="rb-icon">📋</span>Copy</button>
+    <button class="rbtn"><span class="rb-icon">📌</span>Paste</button>
+    <div class="rdiv"></div>
+    <button class="rbtn active"><span class="rb-icon">B</span></button>
+    <button class="rbtn"><span class="rb-icon"><i>I</i></span></button>
+    <button class="rbtn"><span class="rb-icon"><u>U</u></span></button>
+    <div class="rdiv"></div>
+    <button class="rbtn">⬛ Fill Color</button>
+    <button class="rbtn">𝗔 Font Color</button>
+    <div class="rdiv"></div>
+    <button class="rbtn">≡ Align Left</button>
+    <button class="rbtn">≡ Center</button>
+    <button class="rbtn">≡ Align Right</button>
+    <div class="rdiv"></div>
+    <button class="rbtn">$ Format</button>
+    <button class="rbtn">% Percent</button>
+    <div class="rdiv"></div>
+    <button class="rbtn">📊 Chart</button>
+    <button class="rbtn">🔍 Find</button>
+    <button class="rbtn" style="color:#8b5cf6">✦ AI Assist</button>
+  </div>
+</div>
+
+<div class="formula-bar">
+  <div class="cell-name">B14</div>
+  <div class="fx-label">fx</div>
+  <input class="formula-input" value="=SUM(B4:B13)" readonly/>
+</div>
+
+<div class="sheet-area">
+  <div class="table-wrap">
+    <table class="sheet">
+      <thead>
+        <tr>
+          <th class="row-head"></th>
+          <th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th><th>J</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="row-head">1</td>
+          <td class="bold" colspan="1" style="font-size:13px;font-weight:700;color:#217346">Q2 Revenue Report 2025</td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+          <td class="row-head">2</td>
+          <td style="font-size:11px;color:#656d76">Period: April – June 2025</td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+          <td class="row-head">3</td>
+          <td class="header-cell">Product / Service</td>
+          <td class="header-cell">April ($)</td>
+          <td class="header-cell">May ($)</td>
+          <td class="header-cell">June ($)</td>
+          <td class="header-cell">Q2 Total</td>
+          <td class="header-cell">Q1 Total</td>
+          <td class="header-cell">Growth %</td>
+          <td class="header-cell">Target</td>
+          <td class="header-cell">Variance</td>
+          <td class="header-cell">Status</td>
+        </tr>
+        <tr>
+          <td class="row-head">4</td>
+          <td class="bold">Web Development</td>
+          <td class="num">8,400</td><td class="num">9,200</td><td class="num">11,500</td>
+          <td class="formula num">29,100</td><td class="num">24,000</td>
+          <td class="green-num formula">+21.3%</td>
+          <td class="num">28,000</td><td class="green-num">+1,100</td>
+          <td style="color:#217346;font-weight:500">✓ On Track</td>
+        </tr>
+        <tr>
+          <td class="row-head">5</td>
+          <td class="bold">Mobile Apps</td>
+          <td class="num">5,200</td><td class="num">6,800</td><td class="num">7,100</td>
+          <td class="formula num">19,100</td><td class="num">14,500</td>
+          <td class="green-num formula">+31.7%</td>
+          <td class="num">18,000</td><td class="green-num">+1,100</td>
+          <td style="color:#217346;font-weight:500">✓ On Track</td>
+        </tr>
+        <tr>
+          <td class="row-head">6</td>
+          <td class="bold">Digital Marketing</td>
+          <td class="num">3,800</td><td class="num">4,200</td><td class="num">5,600</td>
+          <td class="formula num selected">13,600</td><td class="num">10,200</td>
+          <td class="green-num formula">+33.3%</td>
+          <td class="num">15,000</td><td class="red-num">-1,400</td>
+          <td style="color:#c0392b;font-weight:500">⚠ Below Target</td>
+        </tr>
+        <tr>
+          <td class="row-head">7</td>
+          <td class="bold">UI/UX Design</td>
+          <td class="num">2,900</td><td class="num">3,400</td><td class="num">4,100</td>
+          <td class="formula num">10,400</td><td class="num">8,700</td>
+          <td class="green-num formula">+19.5%</td>
+          <td class="num">10,000</td><td class="green-num">+400</td>
+          <td style="color:#217346;font-weight:500">✓ On Track</td>
+        </tr>
+        <tr>
+          <td class="row-head">8</td>
+          <td class="bold">AI Automation</td>
+          <td class="num">1,200</td><td class="num">2,800</td><td class="num">4,500</td>
+          <td class="formula num">8,500</td><td class="num">3,100</td>
+          <td class="green-num formula">+174.2%</td>
+          <td class="num">6,000</td><td class="green-num">+2,500</td>
+          <td style="color:#217346;font-weight:500">🚀 Exceeding</td>
+        </tr>
+        <tr>
+          <td class="row-head">9</td>
+          <td class="bold">SEO Services</td>
+          <td class="num">1,800</td><td class="num">2,100</td><td class="num">2,400</td>
+          <td class="formula num">6,300</td><td class="num">5,400</td>
+          <td class="green-num formula">+16.7%</td>
+          <td class="num">6,000</td><td class="green-num">+300</td>
+          <td style="color:#217346;font-weight:500">✓ On Track</td>
+        </tr>
+        <tr>
+          <td class="row-head">10</td>
+          <td class="bold">Consulting</td>
+          <td class="num">3,500</td><td class="num">2,800</td><td class="num">3,200</td>
+          <td class="formula num">9,500</td><td class="num">9,800</td>
+          <td class="red-num formula">-3.1%</td>
+          <td class="num">10,000</td><td class="red-num">-500</td>
+          <td style="color:#c0392b;font-weight:500">⚠ Below Target</td>
+        </tr>
+        <tr>
+          <td class="row-head">11</td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+          <td class="row-head">12</td>
+          <td class="bold" style="font-size:12px;color:#217346">Expenses</td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+          <td class="row-head">13</td>
+          <td>Operating Costs</td>
+          <td class="red-num">-4,200</td><td class="red-num">-4,600</td><td class="red-num">-5,100</td>
+          <td class="red-num formula">-13,900</td>
+          <td class="red-num">-12,400</td>
+          <td class="red-num">+12.1%</td>
+          <td></td><td></td><td></td>
+        </tr>
+        <tr>
+          <td class="row-head">14</td>
+          <td class="total-cell bold">TOTAL REVENUE</td>
+          <td class="total-cell formula num">26,800</td>
+          <td class="total-cell formula num">31,300</td>
+          <td class="total-cell formula num">38,400</td>
+          <td class="total-cell formula num bold" style="color:#217346;font-size:13px">$96,500</td>
+          <td class="total-cell num">75,700</td>
+          <td class="total-cell green-num formula bold">+27.5%</td>
+          <td class="total-cell num">83,000</td>
+          <td class="total-cell green-num bold">+13,500</td>
+          <td class="total-cell" style="color:#217346;font-weight:700">🎯 +16%</td>
+        </tr>
+        <tr>
+          <td class="row-head">15</td>
+          <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+          <td class="row-head">16</td>
+          <td class="total-cell bold">NET PROFIT</td>
+          <td class="total-cell green-num formula bold">22,600</td>
+          <td class="total-cell green-num formula bold">26,700</td>
+          <td class="total-cell green-num formula bold">33,300</td>
+          <td class="total-cell green-num formula bold" style="font-size:13px">$82,600</td>
+          <td class="total-cell green-num">63,300</td>
+          <td class="total-cell green-num formula bold">+30.5%</td>
+          <td></td><td></td><td></td>
+        </tr>
+        <tr><td class="row-head">17</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td class="row-head">18</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td class="row-head">19</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td class="row-head">20</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sheet-tabs">
+  <div class="stab active">Q2 Revenue</div>
+  <div class="stab">Q1 Data</div>
+  <div class="stab">Charts</div>
+  <div class="stab">Summary</div>
+  <button class="stab-add">+</button>
+</div>
+
+<div class="status-bar">
+  <div>Ready &nbsp;|&nbsp; SheetAI Pro &nbsp;|&nbsp; Built by Rakibul Islam</div>
+  <div class="status-right">
+    <span>Count: 6</span>
+    <span>Sum: $96,500</span>
+    <span>Average: $16,083</span>
+    <span>Zoom: 100%</span>
+  </div>
+</div>
+
+</body>
+</html>
